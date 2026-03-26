@@ -7,10 +7,16 @@ import StoreKit
 final class StoreManager {
 
     nonisolated static let proProductID = "com.katafract.ExifArmor.Pro"
+    nonisolated static let tipProductIDs = [
+        "com.katafract.ExifArmor.Tip.Small",
+        "com.katafract.ExifArmor.Tip.Medium",
+        "com.katafract.ExifArmor.Tip.Large",
+    ]
     nonisolated static let appGroupID = "group.com.katafract.exifarmor"
     nonisolated static let sharedProAccessKey = "sharedProAccessUnlocked"
 
     private(set) var proProduct: Product?
+    private(set) var tipProducts: [Product] = []
     private(set) var isPro: Bool = false {
         didSet {
             persistSharedProAccess()
@@ -93,7 +99,9 @@ final class StoreManager {
             lastLoadAttempt = attempt
             do {
                 let products = try await Product.products(for: [Self.proProductID])
+                let tips = try await Product.products(for: Self.tipProductIDs)
                 lastProductCount = products.count
+                tipProducts = tips.sorted { $0.price < $1.price }
                 appendDebugLog("Attempt \(attempt) returned \(products.count) product(s)")
                 products.forEach {
                     self.appendDebugLog("Product id=\($0.id) name=\($0.displayName) price=\($0.displayPrice)")
@@ -166,6 +174,24 @@ final class StoreManager {
             appendDebugLog("purchasePro error=\(error.localizedDescription)")
             return false
         }
+    }
+
+    func purchaseTip(_ product: Product) async -> Bool {
+        isLoading = true
+        defer { isLoading = false }
+
+        do {
+            let result = try await product.purchase()
+            if case .success(let verification) = result {
+                let transaction = try checkVerified(verification)
+                await transaction.finish()
+                return true
+            }
+        } catch {
+            errorMessage = "Purchase failed: \(error.localizedDescription)"
+        }
+
+        return false
     }
 
     // MARK: - Restore

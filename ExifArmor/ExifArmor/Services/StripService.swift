@@ -111,6 +111,13 @@ struct StripService {
             return nil
         }
 
+        #if DEBUG
+        if let verifySource = CGImageSourceCreateWithData(destData as CFData, nil),
+           let outputUTI = CGImageSourceGetType(verifySource) {
+            assert(outputUTI == uti, "[StripService] UTI mismatch: input \(uti) → output \(outputUTI)")
+        }
+        #endif
+
         return destData as Data
     }
 

@@ -1,3 +1,4 @@
+import AVFoundation
 import SwiftUI
 
 struct StripResultView: View {
@@ -7,6 +8,8 @@ struct StripResultView: View {
     let onDone: () -> Void
 
     @State private var showBeforeAfter = false
+    @State private var showDiff = false
+    @State private var diffResultIndex = 0
 
     var body: some View {
         ScrollView {
@@ -17,10 +20,44 @@ struct StripResultView: View {
                 // Stats summary
                 statsSummary
 
+                if viewModel.stripResults.count > 1 {
+                    Picker("Photo", selection: $diffResultIndex) {
+                        ForEach(viewModel.stripResults.indices, id: \.self) { index in
+                            Text("Photo \(index + 1)").tag(index)
+                        }
+                    }
+                    .pickerStyle(.segmented)
+                }
+
+                if !viewModel.stripResults.isEmpty {
+                    Button("View Full Metadata Report") {
+                        showDiff = true
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(Color("AccentCyan"))
+                }
+
+                if viewModel.stripResults.contains(where: { $0.originalMetadata.isLivePhoto }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "info.circle")
+                            .foregroundStyle(Color("AccentGold"))
+                        Text("Live Photo video components are not modified. Only the still photo is cleaned.")
+                            .font(.caption)
+                            .foregroundStyle(Color("TextSecondary"))
+                    }
+                    .padding(12)
+                    .background(Color("CardBackground"))
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+
                 metadataOutcomeSummary
 
                 // Cleaned photos grid
                 cleanedPhotosGrid
+
+                if !viewModel.videoStripResults.isEmpty {
+                    cleanedVideosGrid
+                }
 
                 // Action buttons
                 actionButtons
@@ -29,6 +66,15 @@ struct StripResultView: View {
             .padding(.vertical, 24)
         }
         .background(Color("BackgroundDark"))
+        .sheet(isPresented: $showDiff) {
+            if !viewModel.stripResults.isEmpty {
+                MetadataDiffView(
+                    result: viewModel.stripResults[diffResultIndex],
+                    options: viewModel.stripOptions
+                )
+                .presentationDetents([.large])
+            }
+        }
     }
 
     // MARK: - Success Header
@@ -56,7 +102,7 @@ struct StripResultView: View {
         HStack(spacing: 0) {
             statItem(
                 value: "\(viewModel.stripResults.count)",
-                label: "Photos",
+                label: viewModel.videoStripResults.isEmpty ? "Photos" : "Photos",
                 icon: "photo.fill"
             )
 
@@ -177,26 +223,52 @@ struct StripResultView: View {
     // MARK: - Grid
 
     private var cleanedPhotosGrid: some View {
-        LazyVGrid(columns: [
-            GridItem(.flexible(), spacing: 8),
-            GridItem(.flexible(), spacing: 8),
-            GridItem(.flexible(), spacing: 8),
-        ], spacing: 8) {
-            ForEach(viewModel.stripResults) { result in
-                Image(uiImage: result.cleanedImage)
-                    .resizable()
-                    .scaledToFill()
-                    .frame(minHeight: 100)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    .overlay(alignment: .bottomTrailing) {
-                        Image(systemName: "checkmark.shield.fill")
-                            .font(.caption)
-                            .foregroundStyle(Color("SuccessGreen"))
-                            .padding(4)
-                            .background(.ultraThinMaterial)
-                            .clipShape(Circle())
-                            .padding(4)
-                    }
+        VStack(alignment: .leading, spacing: 12) {
+            if !viewModel.stripResults.isEmpty {
+                Text("Cleaned Photos")
+                    .font(.headline)
+                    .foregroundStyle(Color("TextPrimary"))
+            }
+
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: 8),
+                GridItem(.flexible(), spacing: 8),
+                GridItem(.flexible(), spacing: 8),
+            ], spacing: 8) {
+                ForEach(viewModel.stripResults) { result in
+                    Image(uiImage: result.cleanedImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(minHeight: 100)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        .overlay(alignment: .bottomTrailing) {
+                            Image(systemName: "checkmark.shield.fill")
+                                .font(.caption)
+                                .foregroundStyle(Color("SuccessGreen"))
+                                .padding(4)
+                                .background(.ultraThinMaterial)
+                                .clipShape(Circle())
+                                .padding(4)
+                        }
+                }
+            }
+        }
+    }
+
+    private var cleanedVideosGrid: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Cleaned Videos")
+                .font(.headline)
+                .foregroundStyle(Color("TextPrimary"))
+
+            LazyVGrid(columns: [
+                GridItem(.flexible(), spacing: 8),
+                GridItem(.flexible(), spacing: 8),
+                GridItem(.flexible(), spacing: 8),
+            ], spacing: 8) {
+                ForEach(viewModel.videoStripResults, id: \.self) { url in
+                    VideoResultThumbnail(url: url)
+                }
             }
         }
     }
@@ -241,6 +313,70 @@ struct StripResultView: View {
                 }
             }
         }
+    }
+}
+
+private struct VideoResultThumbnail: View {
+    let url: URL
+
+    var body: some View {
+        ZStack(alignment: .bottomTrailing) {
+            if let image = thumbnailImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(minHeight: 100)
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+            } else {
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color("CardBackground"))
+                    .frame(minHeight: 100)
+                    .overlay {
+                        Image(systemName: "video.fill")
+                            .foregroundStyle(Color("AccentMagenta"))
+                    }
+            }
+
+            Image(systemName: "checkmark.shield.fill")
+                .font(.caption)
+                .foregroundStyle(Color("SuccessGreen"))
+                .padding(4)
+                .background(.ultraThinMaterial)
+                .clipShape(Circle())
+                .padding(4)
+        }
+    }
+
+    private var thumbnailImage: UIImage? {
+        let asset = AVURLAsset(url: url)
+        let generator = AVAssetImageGenerator(asset: asset)
+        generator.appliesPreferredTrackTransform = true
+
+        guard let cgImage = try? awaitThumbnailImage(from: generator) else {
+            return nil
+        }
+
+        return UIImage(cgImage: cgImage)
+    }
+
+    private func awaitThumbnailImage(from generator: AVAssetImageGenerator) throws -> CGImage {
+        let semaphore = DispatchSemaphore(value: 0)
+        var result: Result<CGImage, Error>?
+
+        Task {
+            do {
+                let image = try await generator.image(at: .zero).image
+                result = .success(image)
+            } catch {
+                result = .failure(error)
+            }
+            semaphore.signal()
+        }
+
+        semaphore.wait()
+        return try result?.get() ?? {
+            throw NSError(domain: "ExifArmor", code: -1, userInfo: [NSLocalizedDescriptionKey: "Thumbnail generation failed"])
+        }()
     }
 }
 

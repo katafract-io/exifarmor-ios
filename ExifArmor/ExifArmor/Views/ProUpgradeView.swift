@@ -78,7 +78,7 @@ struct ProUpgradeView: View {
                     )
                 )
 
-            Text("One-time purchase. Unlock every Pro feature forever for $2.99.")
+            Text("One-time purchase. Unlock every Pro feature forever for $3.99.")
                 .font(.subheadline)
                 .foregroundStyle(Color("TextSecondary"))
         }
@@ -170,7 +170,7 @@ struct ProUpgradeView: View {
                         ProgressView()
                             .tint(Color("BackgroundDark"))
                     }
-                    Text("\(store.proProduct?.displayPrice ?? "$2.99") — Unlock Pro Forever")
+                    Text("\(store.proProduct?.displayPrice ?? "$3.99") — Unlock Pro Forever")
                         .font(.headline)
                 }
                 .frame(maxWidth: .infinity)

@@ -52,7 +52,7 @@ FEATURES
 FREE VS PRO
 
 Free: 5 photo strips per day with full exposure preview
-Pro: $2.99 one-time purchase. Unlock unlimited strips, the premium share extension, larger batch cleaning, custom strip options, and privacy report progress. No subscription.
+Pro: $3.99 one-time purchase. Unlock unlimited strips, the premium share extension, larger batch cleaning, custom strip options, and privacy report progress. No subscription.
 
 YOUR PRIVACY IS THE WHOLE POINT
 
@@ -61,7 +61,7 @@ ExifArmor contains zero analytics, zero trackers, and zero network calls. We don
 ## Keywords (100 characters max, comma separated)
 photo privacy,remove exif,strip metadata,location remover,exif remover,safe photo,photo security,gps
 
-## What's New (Version 1.0)
+## What's New (Version 1.2.0)
 Your photos have been sharing your secrets. Not anymore.
 
 · Exposure Preview: see your GPS, device info, and timestamps on a map

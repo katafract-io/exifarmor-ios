@@ -1,9 +1,12 @@
+import StoreKit
 import SwiftUI
 
 struct SettingsView: View {
     @Environment(StoreManager.self) private var store
+    @Environment(TemplateManager.self) private var templateManager
     @AppStorage("hasCompletedOnboarding") private var hasCompletedOnboarding = true
     @AppStorage("defaultStripMode") private var defaultStripMode = "all"
+    @State private var showTipThankYou = false
 
     var body: some View {
         NavigationStack {
@@ -132,6 +135,65 @@ struct SettingsView: View {
                     }
                 }
 
+                if !store.tipProducts.isEmpty {
+                    Section {
+                        ForEach(store.tipProducts) { product in
+                            Button {
+                                Task {
+                                    let success = await store.purchaseTip(product)
+                                    if success {
+                                        showTipThankYou = true
+                                    }
+                                }
+                            } label: {
+                                HStack(spacing: 12) {
+                                    Image(systemName: "heart.fill")
+                                        .foregroundStyle(Color("AccentMagenta"))
+                                    Text("Tip \(product.displayPrice)")
+                                        .foregroundStyle(Color("TextPrimary"))
+                                    Spacer()
+                                }
+                            }
+                        }
+                    } header: {
+                        Text("Support Development")
+                    } footer: {
+                        Text("ExifArmor is built by one person. Tips go directly to indie development. No extra features - just gratitude.")
+                    }
+                }
+
+                Section("Templates") {
+                    ForEach(Array(templateManager.allTemplates.enumerated()), id: \.element.id) { index, template in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(template.name)
+                                    .foregroundStyle(Color("TextPrimary"))
+                                Text(templateSummary(template.options))
+                                    .font(.caption)
+                                    .foregroundStyle(Color("TextSecondary"))
+                            }
+
+                            Spacer()
+
+                            if template.isBuiltIn {
+                                Text("Built-in")
+                                    .font(.caption2)
+                                    .foregroundStyle(Color("TextSecondary"))
+                            }
+                        }
+                        .deleteDisabled(index < StripTemplate.builtIns.count)
+                    }
+                    .onDelete { indexSet in
+                        let offset = StripTemplate.builtIns.count
+                        for index in indexSet {
+                            let adjustedIndex = index - offset
+                            if adjustedIndex >= 0 && adjustedIndex < templateManager.customTemplates.count {
+                                templateManager.delete(templateManager.customTemplates[adjustedIndex])
+                            }
+                        }
+                    }
+                }
+
                 // Privacy
                 Section {
                     Label {
@@ -161,6 +223,14 @@ struct SettingsView: View {
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.large)
             .toolbarColorScheme(.dark, for: .navigationBar)
+            .task {
+                await store.ensureProductsLoaded()
+            }
+            .alert("Thank You! 🙏", isPresented: $showTipThankYou) {
+                Button("You're welcome!", role: .cancel) {}
+            } message: {
+                Text("Your support means a lot and helps keep ExifArmor independent and ad-free.")
+            }
         }
     }
 
@@ -173,5 +243,19 @@ struct SettingsView: View {
         default:
             return "Current default: Remove All. Best when you want the safest share-ready copy with the least metadata left behind."
         }
+    }
+
+    private func templateSummary(_ options: StripOptions) -> String {
+        if options.removeAll {
+            return "Removes all metadata"
+        }
+
+        var parts: [String] = []
+        if options.removeLocation { parts.append("location") }
+        if options.removeDateTime { parts.append("date/time") }
+        if options.removeDeviceInfo { parts.append("device info") }
+        if options.removeCameraSettings { parts.append("camera settings") }
+
+        return parts.isEmpty ? "No fields selected" : "Removes " + parts.joined(separator: ", ")
     }
 }

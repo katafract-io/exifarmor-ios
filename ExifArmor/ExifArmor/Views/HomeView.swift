@@ -71,7 +71,7 @@ struct HomeView: View {
                 isPresented: $showPhotoPicker,
                 selection: $viewModel.selectedItems,
                 maxSelectionCount: store.isPro ? 50 : 5,
-                matching: .images
+                matching: .any(of: [.images, .videos])
             )
             .onChange(of: viewModel.selectedItems) { _, newItems in
                 guard !newItems.isEmpty else { return }
@@ -90,7 +90,7 @@ struct HomeView: View {
             .alert("Saved!", isPresented: $showSavedAlert) {
                 Button("OK") { viewModel.reset() }
             } message: {
-                Text("\(viewModel.stripResults.count) cleaned photo(s) saved to your library.")
+                Text("\(viewModel.totalProcessedMediaCount) cleaned item(s) saved to your library.")
             }
         }
         .preferredColorScheme(.dark)
@@ -109,11 +109,11 @@ struct HomeView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 20))
 
             VStack(spacing: 8) {
-                Text("Select photos to scan")
+                Text("Select photos or videos to scan")
                     .font(.title3.weight(.semibold))
                     .foregroundStyle(Color("TextPrimary"))
 
-                Text("See what hidden data your photos reveal")
+                Text("See what hidden data your media reveal")
                     .font(.subheadline)
                     .foregroundStyle(Color("TextSecondary"))
             }
@@ -157,7 +157,7 @@ struct HomeView: View {
                 .controlSize(.large)
                 .tint(Color("AccentCyan"))
 
-            Text("Scanning \(viewModel.processedCount)/\(viewModel.totalCount) photos…")
+            Text("Scanning \(viewModel.processedCount)/\(viewModel.totalCount) items…")
                 .font(.subheadline)
                 .foregroundStyle(Color("TextSecondary"))
         }
@@ -208,7 +208,7 @@ struct HomeView: View {
 
     private func handleStrip() {
         // Check free tier limit
-        let count = viewModel.analyzedPhotos.count
+        let count = viewModel.analyzedPhotos.count + (viewModel.stripOptions.includeVideos ? viewModel.analyzedVideos.count : 0)
         if !store.isPro && !freeTier.canStrip(isPro: false) {
             AnalyticsLogger.shared.log(.freeLimitReached)
             AnalyticsLogger.shared.log(.paywallShown, metadata: ["trigger": "free_limit"])
@@ -227,14 +227,14 @@ struct HomeView: View {
         Task {
             await viewModel.stripAll()
             // Record usage
-            freeTier.recordStrips(count: viewModel.stripResults.count, isPro: store.isPro)
+            freeTier.recordStrips(count: viewModel.totalProcessedMediaCount, isPro: store.isPro)
             report.recordStrip(
-                photosCount: viewModel.stripResults.count,
+                photosCount: viewModel.totalProcessedMediaCount,
                 fieldsRemoved: viewModel.totalFieldsRemoved,
                 hadLocation: viewModel.hadLocationData
             )
             AnalyticsLogger.shared.logStripCompleted(
-                photosCount: viewModel.stripResults.count,
+                photosCount: viewModel.totalProcessedMediaCount,
                 fieldsRemoved: viewModel.totalFieldsRemoved,
                 hadGPS: viewModel.hadLocationData
             )
@@ -246,7 +246,7 @@ struct HomeView: View {
             let saved = await viewModel.saveAllToPhotoLibrary()
             if saved {
                 AnalyticsLogger.shared.log(.photosSaved, metadata: [
-                    "count": "\(viewModel.stripResults.count)"
+                    "count": "\(viewModel.totalProcessedMediaCount)"
                 ])
                 showSavedAlert = true
             }

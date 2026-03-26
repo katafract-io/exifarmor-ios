@@ -67,7 +67,7 @@ Both the main app and share extension need to share data:
 
 **Before submitting to App Store Connect:**
 - Create the product `com.katafract.ExifArmor.Pro` as a Non-Consumable IAP
-- This is a $2.99 one-time unlock for unlimited strips, the premium share extension, batch mode, custom strip options, and privacy report progress
+- This is a $3.99 one-time unlock for unlimited strips, the premium share extension, batch mode, custom strip options, and privacy report progress
 - Update `StoreManager.proProductID` if you use a different product ID
 - Remove the StoreKit configuration from the scheme (it overrides real products)
 
@@ -97,7 +97,7 @@ ExifArmor/
 ├── Services/
 │   ├── MetadataService.swift        # Reads EXIF via ImageIO
 │   ├── StripService.swift           # Creates clean copies via ImageIO
-│   ├── StoreManager.swift           # StoreKit 2 IAP ($2.99 one-time Pro unlock)
+│   ├── StoreManager.swift           # StoreKit 2 IAP ($3.99 one-time Pro unlock)
 │   ├── PrivacyReportManager.swift   # Lifetime stats (App Group shared)
 │   ├── FreeTierManager.swift        # 5 strips/day gating
 │   └── AnalyticsLogger.swift        # On-device conversion funnel tracker

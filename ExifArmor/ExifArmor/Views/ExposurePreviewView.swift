@@ -47,6 +47,16 @@ struct ExposurePreviewView: View {
                     .padding(.top, 16)
                 }
 
+                if !viewModel.analyzedVideos.isEmpty {
+                    VStack(spacing: 16) {
+                        ForEach(viewModel.analyzedVideos) { video in
+                            VideoMetadataCard(video: video)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.top, currentPhoto == nil ? 16 : 0)
+                }
+
                 // Action buttons
                 actionButtons
                     .padding(.horizontal, 16)
@@ -65,7 +75,7 @@ struct ExposurePreviewView: View {
                     onStrip()
                 }
             )
-            .presentationDetents([.medium])
+            .presentationDetents([.medium, .large])
         }
     }
 

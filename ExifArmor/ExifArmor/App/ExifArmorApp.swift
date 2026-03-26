@@ -6,6 +6,7 @@ struct ExifArmorApp: App {
     @State private var storeManager = StoreManager()
     @State private var privacyReport = PrivacyReportManager()
     @State private var freeTier = FreeTierManager()
+    @State private var templateManager = TemplateManager()
 
     var body: some Scene {
         WindowGroup {
@@ -14,6 +15,7 @@ struct ExifArmorApp: App {
                     .environment(storeManager)
                     .environment(privacyReport)
                     .environment(freeTier)
+                    .environment(templateManager)
                     .onAppear {
                         AnalyticsLogger.shared.log(.appLaunch)
                     }

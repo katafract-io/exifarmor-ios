@@ -1,12 +1,14 @@
 import Foundation
+import UIKit
 
 /// Defines which metadata categories to strip from a photo.
-struct StripOptions {
+struct StripOptions: Codable, Equatable, Hashable {
     var removeLocation: Bool = true
     var removeDateTime: Bool = true
     var removeDeviceInfo: Bool = true
     var removeCameraSettings: Bool = true
     var removeAll: Bool = true
+    var includeVideos: Bool = true
 
     /// Preset: remove everything (default).
     static let all = StripOptions(
@@ -14,7 +16,8 @@ struct StripOptions {
         removeDateTime: true,
         removeDeviceInfo: true,
         removeCameraSettings: true,
-        removeAll: true
+        removeAll: true,
+        includeVideos: true
     )
 
     /// Preset: remove only GPS/location data.
@@ -23,7 +26,8 @@ struct StripOptions {
         removeDateTime: false,
         removeDeviceInfo: false,
         removeCameraSettings: false,
-        removeAll: false
+        removeAll: false,
+        includeVideos: true
     )
 
     /// Preset: remove location + device info but keep camera settings.
@@ -32,7 +36,8 @@ struct StripOptions {
         removeDateTime: true,
         removeDeviceInfo: true,
         removeCameraSettings: false,
-        removeAll: false
+        removeAll: false,
+        includeVideos: true
     )
 }
 
@@ -44,5 +49,3 @@ struct StripResult: Identifiable {
     let cleanedImage: UIImage
     let fieldsRemoved: Int
 }
-
-import UIKit

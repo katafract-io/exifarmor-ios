@@ -7,6 +7,8 @@ struct PhotoMetadata: Identifiable {
     let id = UUID()
     let image: UIImage
     let imageData: Data
+    var sourceUTI: String?
+    var isLivePhoto: Bool = false
 
     // Location
     var latitude: Double?

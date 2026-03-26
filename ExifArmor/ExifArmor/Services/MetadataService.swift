@@ -16,6 +16,8 @@ struct MetadataService {
             return meta
         }
 
+        meta.sourceUTI = CGImageSourceGetType(source) as? String
+
         // --- EXIF Dictionary ---
         if let exif = properties[kCGImagePropertyExifDictionary as String] as? [String: Any] {
             meta.exifDictionary = exif

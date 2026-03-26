@@ -12,6 +12,7 @@ final class ShareViewController: UIViewController {
 
     private var imageDataItems: [(Data, String)] = []
     private var cleanedDataItems: [(Data, String)] = []
+    private var tempShareURLs: [URL] = []
 
     // UI
     private let statusLabel = UILabel()
@@ -303,11 +304,12 @@ final class ShareViewController: UIViewController {
     // MARK: - Share
 
     private func temporaryFileURLsForCleanedItems() -> [URL] {
+        cleanupTemporaryFiles()
         let tempDirectory = FileManager.default.temporaryDirectory
             .appendingPathComponent("CleanedShare", isDirectory: true)
         try? FileManager.default.createDirectory(at: tempDirectory, withIntermediateDirectories: true)
 
-        return cleanedDataItems.compactMap { data, filename in
+        let urls = cleanedDataItems.compactMap { data, filename in
             let safeName = filename.isEmpty ? "ExifArmor-\(UUID().uuidString).jpg" : filename
             let url = tempDirectory.appendingPathComponent(safeName)
             do {
@@ -317,6 +319,20 @@ final class ShareViewController: UIViewController {
                 return nil
             }
         }
+
+        tempShareURLs = urls
+        return urls
+    }
+
+    private func cleanupTemporaryFiles() {
+        for url in tempShareURLs {
+            try? FileManager.default.removeItem(at: url)
+        }
+        tempShareURLs = []
+
+        let tempDirectory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("CleanedShare", isDirectory: true)
+        try? FileManager.default.removeItem(at: tempDirectory)
     }
 
     // MARK: - App Group Counter
@@ -339,7 +355,7 @@ final class ShareViewController: UIViewController {
 
     private func showPremiumRequired() {
         subtitleLabel.text = "ExifArmor Pro Required"
-        statusLabel.text = "Clean and forward photos straight from the iOS share sheet with ExifArmor Pro. Upgrade in the app to unlock this premium extension for a $2.99 one-time purchase."
+        statusLabel.text = "Clean and forward photos straight from the iOS share sheet with ExifArmor Pro. Upgrade in the app to unlock this premium extension for a $3.99 one-time purchase."
         statusLabel.textColor = UIColor(named: "AccentGold") ?? .systemYellow
         progressView.isHidden = true
         actionStack.isHidden = true
@@ -365,6 +381,7 @@ final class ShareViewController: UIViewController {
 
         let controller = UIActivityViewController(activityItems: urls, applicationActivities: nil)
         controller.completionWithItemsHandler = { [weak self] _, _, _, _ in
+            self?.cleanupTemporaryFiles()
             self?.extensionContext?.completeRequest(returningItems: nil)
         }
 
@@ -381,10 +398,12 @@ final class ShareViewController: UIViewController {
     }
 
     @objc private func doneTapped() {
+        cleanupTemporaryFiles()
         extensionContext?.completeRequest(returningItems: nil)
     }
 
     @objc private func cancelTapped() {
+        cleanupTemporaryFiles()
         extensionContext?.cancelRequest(withError: NSError(
             domain: "ExifArmor",
             code: 0,

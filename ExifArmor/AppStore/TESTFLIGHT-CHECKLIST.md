@@ -3,7 +3,7 @@
 ## Pre-Flight: Xcode Project
 
 - [ ] Bundle ID set: `com.katafract.exifarmor` (match App Store Connect)
-- [ ] Version: `1.0` / Build: `1`
+- [ ] Version: `1.2.0` / Build: `11`
 - [ ] Deployment target: iOS 17.0
 - [ ] All placeholder strings replaced (search for placeholder strings):
   - `StoreManager.proProductID` → `com.katafract.ExifArmor.Pro`
@@ -23,7 +23,7 @@
   - Type: Non-Consumable
   - Reference Name: `Pro Unlock`
   - Product ID: `com.katafract.ExifArmor.Pro`
-  - Price: $2.99 (Tier 3)
+  - Price: $3.99 (Tier 4)
   - Display Name: `ExifArmor Pro`
   - Description: `One-time Pro unlock for unlimited strips, premium share extension, batch mode, custom strip options, and privacy report`
   - Review screenshot: screenshot of the Pro upgrade screen
@@ -120,7 +120,7 @@
   The app processes all photos on-device and does not depend on a custom backend.
   To test: select any photo from the library, view the exposure preview
   showing metadata like GPS coordinates, then tap "Strip All" to create
-  a clean copy. The $2.99 one-time Pro unlock adds unlimited strips,
+  a clean copy. The $3.99 one-time Pro unlock adds unlimited strips,
   the premium share extension, batch mode, custom strip options,
   and privacy report progress.
   ```
