@@ -6,6 +6,14 @@ import SwiftUI
 import UniformTypeIdentifiers
 import UIKit
 
+/// Explicitly requests HEIC data from the Photos library to prevent silent JPEG transcoding.
+private struct HEICPhoto: Transferable {
+    let data: Data
+    static var transferRepresentation: some TransferRepresentation {
+        DataRepresentation(importedContentType: .heic) { HEICPhoto(data: $0) }
+    }
+}
+
 private struct PickedVideoFile: Transferable {
     let url: URL
 
@@ -104,7 +112,16 @@ final class PhotoStripViewModel {
                 }
             } else {
                 do {
-                    guard let data = try await item.loadTransferable(type: Data.self),
+                    // Prefer HEIC-specific loading to prevent iOS from silently
+                    // transcoding HEIC photos to JPEG before we see the data.
+                    let rawData: Data?
+                    if item.supportedContentTypes.contains(.heic),
+                       let heicPhoto = try? await item.loadTransferable(type: HEICPhoto.self) {
+                        rawData = heicPhoto.data
+                    } else {
+                        rawData = try await item.loadTransferable(type: Data.self)
+                    }
+                    guard let data = rawData,
                           let image = UIImage(data: data)
                     else { continue }
 
@@ -188,19 +205,21 @@ final class PhotoStripViewModel {
         guard stripOptions.includeVideos else { return }
 
         let videoOffset = analyzedPhotos.count
+        let totalVideos = analyzedVideos.count
         for (index, meta) in analyzedVideos.enumerated() {
             await MainActor.run {
                 currentItemProgress = 0
-                statusMessage = "Cleaning video \(index + 1) of \(analyzedVideos.count)…"
+                statusMessage = "Cleaning video \(index + 1) of \(totalVideos)…"
             }
 
             if let cleanURL = try? await VideoStripService.stripMetadata(
                 from: meta.fileURL,
-                onProgress: { [weak self] progress in
-                    await MainActor.run {
-                        self?.currentItemProgress = progress
-                        self?.statusMessage = "Cleaning video \(index + 1) of \(self?.analyzedVideos.count ?? 0)… \(Int(progress * 100))%"
-                    }
+                onProgress: { [weak viewModel = self, index, totalVideos] progress in
+                    await viewModel?.updateVideoProgress(
+                        itemIndex: index,
+                        totalVideos: totalVideos,
+                        progress: progress
+                    )
                 }
             ) {
                 await MainActor.run {
@@ -216,6 +235,12 @@ final class PhotoStripViewModel {
                 }
             }
         }
+    }
+
+    @MainActor
+    private func updateVideoProgress(itemIndex: Int, totalVideos: Int, progress: Double) {
+        currentItemProgress = progress
+        statusMessage = "Cleaning video \(itemIndex + 1) of \(totalVideos)… \(Int(progress * 100))%"
     }
 
     // MARK: - Save to Photo Library
