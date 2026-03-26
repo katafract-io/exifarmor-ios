@@ -6,6 +6,26 @@ import SwiftUI
 import UniformTypeIdentifiers
 import UIKit
 
+private struct PickedVideoFile: Transferable {
+    let url: URL
+
+    static var transferRepresentation: some TransferRepresentation {
+        FileRepresentation(importedContentType: .movie) { received in
+            let directory = FileManager.default.temporaryDirectory
+                .appendingPathComponent("PickedVideos", isDirectory: true)
+            try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+
+            let filename = received.file.lastPathComponent.isEmpty
+                ? "ExifArmor_\(UUID().uuidString).mov"
+                : "\(UUID().uuidString)_\(received.file.lastPathComponent)"
+            let destinationURL = directory.appendingPathComponent(filename)
+
+            try FileManager.default.copyItem(at: received.file, to: destinationURL)
+            return Self(url: destinationURL)
+        }
+    }
+}
+
 /// Drives the core workflow: pick → analyze → preview → strip → save/share.
 @Observable
 final class PhotoStripViewModel {
@@ -33,6 +53,7 @@ final class PhotoStripViewModel {
     var videoStripResults: [URL] = []
     var stripOptions: StripOptions = .all
     var showStripOptions: Bool = false
+    private var importedVideoURLs: [URL] = []
     private var sharedItemURLs: [URL] = []
 
     // Batch progress
@@ -44,6 +65,8 @@ final class PhotoStripViewModel {
     /// Load image data from PhotosPicker selections and extract metadata.
     func loadSelectedPhotos() async {
         guard !selectedItems.isEmpty else { return }
+
+        cleanupImportedVideos()
 
         await MainActor.run {
             phase = .loading
@@ -59,7 +82,7 @@ final class PhotoStripViewModel {
         var videoResults: [VideoMetadata] = []
 
         for item in selectedItems {
-            guard !item.supportedContentTypes.contains(.movie) else {
+            guard !isMovieItem(item) else {
                 await MainActor.run {
                     processedCount += 1
                 }
@@ -71,7 +94,7 @@ final class PhotoStripViewModel {
                       let image = UIImage(data: data)
                 else { continue }
 
-                let isLivePhoto = item.supportedContentTypes.contains(.livePhoto)
+                let isLivePhoto = isLivePhotoItem(item)
                 var metadata = MetadataService.extractMetadata(from: data, image: image)
                 metadata.isLivePhoto = isLivePhoto
                 photoResults.append(metadata)
@@ -85,10 +108,11 @@ final class PhotoStripViewModel {
         }
 
         for item in selectedItems {
-            guard item.supportedContentTypes.contains(.movie) else { continue }
+            guard isMovieItem(item) else { continue }
 
-            if let url = try? await item.loadTransferable(type: URL.self) {
-                let videoMeta = await VideoMetadataService.extractMetadata(from: url)
+            if let pickedFile = try? await item.loadTransferable(type: PickedVideoFile.self) {
+                importedVideoURLs.append(pickedFile.url)
+                let videoMeta = await VideoMetadataService.extractMetadata(from: pickedFile.url)
                 videoResults.append(videoMeta)
             }
         }
@@ -233,6 +257,7 @@ final class PhotoStripViewModel {
 
     func reset() {
         cleanupSharedItems()
+        cleanupImportedVideos()
         for url in videoStripResults {
             try? FileManager.default.removeItem(at: url)
         }
@@ -292,5 +317,24 @@ final class PhotoStripViewModel {
             try? FileManager.default.removeItem(at: url)
         }
         sharedItemURLs = []
+    }
+
+    private func cleanupImportedVideos() {
+        for url in importedVideoURLs {
+            try? FileManager.default.removeItem(at: url)
+        }
+        importedVideoURLs = []
+
+        let directory = FileManager.default.temporaryDirectory
+            .appendingPathComponent("PickedVideos", isDirectory: true)
+        try? FileManager.default.removeItem(at: directory)
+    }
+
+    private func isMovieItem(_ item: PhotosPickerItem) -> Bool {
+        item.supportedContentTypes.contains { $0.conforms(to: .movie) }
+    }
+
+    private func isLivePhotoItem(_ item: PhotosPickerItem) -> Bool {
+        item.supportedContentTypes.contains { $0.conforms(to: .livePhoto) }
     }
 }
