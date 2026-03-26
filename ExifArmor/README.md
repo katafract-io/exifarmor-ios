@@ -1,14 +1,40 @@
 # ExifArmor
 
-ExifArmor is an iPhone app for inspecting and removing privacy-sensitive metadata from photos and videos before sharing them.
+ExifArmor is a privacy-focused iPhone app for inspecting and removing metadata from photos and videos before you share them.
 
-It focuses on one job:
+It exists for a simple reason:
 
-- show what a file reveals
-- remove the metadata you choose
-- keep everything on-device
+- many people do not realize how much location and device data media files carry
+- privacy tools should be inspectable
+- useful privacy software still needs a sustainable distribution model
 
-The project is open source. The App Store version is the maintained, signed, compiled distribution for end users.
+ExifArmor is open source because privacy software should be auditable.
+
+ExifArmor is also sold on the App Store because most people want a signed, maintained, ready-to-use build, and because paid distribution helps fund continued work on open source, privacy-driven software.
+
+In short:
+
+- GitHub is for transparency, source access, and contribution
+- the App Store is for the polished consumer build
+
+## Why This Is Open Source And Also Paid
+
+That combination is intentional.
+
+Open source matters here because:
+
+- people should be able to inspect whether the app really keeps media on-device
+- privacy claims should be verifiable, not marketing copy
+- developers and researchers should be able to audit the implementation
+
+The paid App Store build also matters because:
+
+- most users do not want to compile their own iPhone apps
+- signed App Store distribution is simpler and safer for normal users
+- support, maintenance, testing, StoreKit, release engineering, and App Review all take real time
+- funding privacy tools directly is better than funding them through ads, tracking, or data collection
+
+Buying the App Store version is not paying for secrecy. It is paying for distribution, maintenance, updates, support, and continued development of a privacy-first product.
 
 ## What The App Does
 
@@ -65,7 +91,11 @@ The open-source repository is for:
 - local builds
 - contributions and experimentation
 
-If you want the consumer-ready build, use the App Store or TestFlight release. If you want to inspect or modify the app, use this repository.
+If you want the easiest experience, use the App Store build.
+
+If you want to inspect, audit, modify, or locally build the app, use this repository.
+
+These two channels serve different needs and are meant to coexist.
 
 ## Tech Stack
 
@@ -138,6 +168,18 @@ That means:
 - GitHub can contain features or fixes not yet available in the public build
 - the App Store build can have a higher review and stability bar
 - TestFlight builds may temporarily lead or trail `main`
+
+## Support The Project
+
+If you value open source privacy tools, the most direct ways to support ExifArmor are:
+
+- buy the App Store version
+- use the tip jar in the app
+- report bugs clearly
+- contribute code or review
+- share the project with people who care about on-device privacy
+
+The business model is intentionally straightforward: paid software, transparent code, no surveillance.
 
 ## Contributing
 
