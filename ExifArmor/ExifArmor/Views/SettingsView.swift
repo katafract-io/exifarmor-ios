@@ -226,7 +226,7 @@ struct SettingsView: View {
             .task {
                 await store.ensureProductsLoaded()
             }
-            .alert("Thank You! 🙏", isPresented: $showTipThankYou) {
+            .alert("Thank You!", isPresented: $showTipThankYou) {
                 Button("You're welcome!", role: .cancel) {}
             } message: {
                 Text("Your support means a lot and helps keep ExifArmor independent and ad-free.")

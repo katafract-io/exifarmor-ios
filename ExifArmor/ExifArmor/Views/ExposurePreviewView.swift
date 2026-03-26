@@ -40,6 +40,7 @@ struct ExposurePreviewView: View {
                         }
                         .padding(.horizontal, 16)
                         .padding(.top, 16)
+                        .id(photo.id)
                     }
                 }
 
@@ -182,6 +183,7 @@ struct ExposurePreviewView: View {
                         .tint(Color("WarningRed"))
                 }
                 .frame(height: 160)
+                .id("\(coord.latitude),\(coord.longitude)")
                 .clipShape(RoundedRectangle(cornerRadius: 10))
                 .allowsHitTesting(false)
 
