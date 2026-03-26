@@ -21,3 +21,4 @@ DerivedData/
 
 # Local scratch files
 File.txt
+.agent-rules.local.md
