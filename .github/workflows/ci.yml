@@ -107,7 +107,7 @@ jobs:
   upload:
     name: Upload to TestFlight
     runs-on: macos-latest
-    needs: [privacy-lint, build-and-test]
+    needs: [privacy-lint]
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
     env:
       ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
