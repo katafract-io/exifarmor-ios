@@ -209,6 +209,14 @@ final class StoreManager {
     // MARK: - Private
 
     private func checkExistingPurchases() async {
+        // Check platform unlock first (Enclave/Sovereign token via App Group)
+        if PlatformEntitlement.isPlatformUnlocked {
+            isPro = true
+            appendDebugLog("platform entitlement found via shared App Group")
+            return
+        }
+
+        // Fall back to StoreKit entitlements
         for await result in Transaction.currentEntitlements {
             if case .verified(let transaction) = result,
                transaction.productID == Self.proProductID {
