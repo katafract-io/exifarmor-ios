@@ -118,7 +118,7 @@ jobs:
           set -e
 
       - name: Clean
-        run: xcodebuild -project ExifArmor.xcodeproj -scheme ExifArmor clean
+        run: xcodebuild -project ExifArmor.xcodeproj -scheme ExifArmor -destination "generic/platform=iOS" clean
 
       - name: Archive
         env:
