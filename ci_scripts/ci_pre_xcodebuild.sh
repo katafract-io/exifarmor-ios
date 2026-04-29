@@ -1,6 +1,11 @@
 #!/bin/zsh -e
 # Xcode Cloud CI pre-build: set CFBundleVersion on all targets via agvtool.
 # Formula: CI_BUILD_NUMBER + 100 (ensures climb past any legacy TestFlight build).
+
+# Initialize Xcode frameworks (fixes "Symbol not found" errors with mismatched frameworks)
+echo "ci_pre_xcodebuild: initializing Xcode frameworks..."
+xcodebuild -runFirstLaunch >/dev/null 2>&1 || true
+
 BUILD_NUM=$((CI_BUILD_NUMBER + 100))
 echo "ci_pre_xcodebuild: setting CFBundleVersion to $BUILD_NUM on all targets"
 cd "$CI_PRIMARY_REPOSITORY_PATH"
