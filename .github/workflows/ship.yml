@@ -146,7 +146,9 @@ jobs:
         run: |
           APP=$(ls -d "$ARCHIVE_PATH/Products/Applications/"*.app | head -1)
           mkdir -p "$APP/PlugIns"
-          SRC="$HOME/Library/Developer/Xcode/DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/ExifArmor/IntermediateBuildFilesPath/UninstalledProducts/iphoneos"
+          # Extract app name (e.g., "ExifArmor" from "ExifArmor.app") for the intermediate build path
+          APP_NAME=$(basename "$APP" .app)
+          SRC="$HOME/Library/Developer/Xcode/DerivedData/Build/Intermediates.noindex/ArchiveIntermediates/$APP_NAME/IntermediateBuildFilesPath/UninstalledProducts/iphoneos"
           if [ ! -d "$SRC" ]; then
             echo "(no UninstalledProducts — single-target app)"
             exit 0
