@@ -1,0 +1,41 @@
+{
+  "default": {
+    "title": {
+      "text": "ExifArmor",
+      "fontName": "Helvetica-Bold",
+      "fontSize": 36,
+      "fontColor": "#00F0FF",
+      "align": "center"
+    },
+    "background": "#0B0C12",
+    "padding": 50,
+    "interline": 10,
+    "title_below_image": false
+  },
+  "data": [
+    {
+      "filename": "01-home-marketplace-photos.png",
+      "title": "Selling something online? They can see more than the photo."
+    },
+    {
+      "filename": "02-metadata-exposure.png",
+      "title": "GPS. Device. Timestamp. All visible to the buyer."
+    },
+    {
+      "filename": "03-strip-options.png",
+      "title": "You control what gets removed."
+    },
+    {
+      "filename": "04-stripping-progress.png",
+      "title": "One tap. Metadata gone."
+    },
+    {
+      "filename": "05-clean-result.png",
+      "title": "Photos shared. Location stripped."
+    },
+    {
+      "filename": "06-pro-upgrade.png",
+      "title": "Unlimited strips. Unlimited peace of mind."
+    }
+  ]
+}

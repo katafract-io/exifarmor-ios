@@ -1,0 +1,25 @@
+/* ExifArmor screenshot banners and captions */
+
+/* Frame 01: Home with marketplace photos */
+"01-home-marketplace-photos.png" = "Selling something online? They can see more than the photo.";
+"01-home-marketplace-photos-caption" = "Your marketplace listing photos contain GPS, device details, and timestamps. Buyers (or anyone) can extract them.";
+
+/* Frame 02: Metadata exposure */
+"02-metadata-exposure.png" = "GPS. Device. Timestamp. All visible to the buyer.";
+"02-metadata-exposure-caption" = "EXIF metadata travels with every photo. See what's exposed before you share.";
+
+/* Frame 03: Strip options */
+"03-strip-options.png" = "You control what gets removed.";
+"03-strip-options-caption" = "Choose which metadata to strip. All metadata removal is yours to decide.";
+
+/* Frame 04: Stripping in progress */
+"04-stripping-progress.png" = "One tap. Metadata gone.";
+"04-stripping-progress-caption" = "Strip metadata from one photo or a batch. Process runs instantly on-device.";
+
+/* Frame 05: Clean result */
+"05-clean-result.png" = "Photos shared. Location stripped.";
+"05-clean-result-caption" = "Location, device, and timestamps removed. Share safely without revealing where you are.";
+
+/* Frame 06: Pro upgrade */
+"06-pro-upgrade.png" = "Unlimited strips. Unlimited peace of mind.";
+"06-pro-upgrade-caption" = "Pro ($0.99 one-time) removes limits. Share from any app. Total privacy.";
