@@ -9,6 +9,13 @@ struct ExifArmorApp: App {
     @State private var templateManager = TemplateManager()
     @State private var isShowingSplash = true
 
+    init() {
+        // In screenshot mode with --skip-onboarding, bypass onboarding gate
+        if CommandLine.arguments.contains("--screenshots") && CommandLine.arguments.contains("--skip-onboarding") {
+            hasCompletedOnboarding = true
+        }
+    }
+
     var body: some Scene {
         WindowGroup {
             ZStack {
