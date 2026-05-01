@@ -20,6 +20,7 @@ override_status_bar_arguments("--time 9:41 --batteryState charged --batteryLevel
 
 launch_arguments([
   "--screenshots",
+  "--mock-prices",
 ])
 
 skip_open_summary(true)
