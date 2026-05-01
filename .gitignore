@@ -22,3 +22,13 @@ DerivedData/
 # Local scratch files
 File.txt
 .agent-rules.local.md
+
+# Fastlane screenshot capture output (PNGs are generated on-demand by
+# `fastlane screenshots`; only Framefile.json + background.jpg are tracked).
+fastlane/screenshots/**/*.png
+fastlane/screenshots/**/screenshots.html
+fastlane/screenshots/screenshots.html
+fastlane/screenshots/.fastlane*
+fastlane/screenshots/*/en-US/
+fastlane/test_output/
+fastlane/report.xml

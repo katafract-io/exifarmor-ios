@@ -7,7 +7,7 @@ struct ExifArmorApp: App {
     @State private var privacyReport = PrivacyReportManager()
     @State private var freeTier = FreeTierManager()
     @State private var templateManager = TemplateManager()
-    @State private var isShowingSplash = true
+    @State private var isShowingSplash = !ScreenshotMode.skipOnboarding
 
     var body: some Scene {
         WindowGroup {
@@ -29,7 +29,7 @@ struct ExifArmorApp: App {
 
     @ViewBuilder
     private var appRoot: some View {
-        if hasCompletedOnboarding {
+        if hasCompletedOnboarding || ScreenshotMode.skipOnboarding {
             MainTabView()
                 .environment(storeManager)
                 .environment(privacyReport)

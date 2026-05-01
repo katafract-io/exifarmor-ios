@@ -39,15 +39,29 @@ final class StoreManager {
     init() {
         bundleIdentifier = Bundle.main.bundleIdentifier ?? "nil"
         appendDebugLog("init bundle=\(bundleIdentifier)")
+
+        // Screenshot mode short-circuits StoreKit entirely so the captured
+        // frames are deterministic regardless of sandbox state.
+        if ScreenshotMode.mockSubscribed {
+            isPro = true
+            appendDebugLog("ScreenshotMode: forced isPro=true")
+        } else if ScreenshotMode.mockUnsubscribed {
+            isPro = false
+            appendDebugLog("ScreenshotMode: forced isPro=false")
+        }
+
         persistSharedProAccess()
 
         // Start listening for transaction updates (renewals, refunds, etc.)
         updateListenerTask = listenForTransactionUpdates()
 
-        // Check existing entitlements on launch
-        Task {
-            await checkExistingPurchases()
-            await ensureProductsLoaded()
+        // Check existing entitlements on launch (skipped under screenshot mode
+        // so the forced isPro state above is not stomped).
+        if !ScreenshotMode.isActive {
+            Task {
+                await checkExistingPurchases()
+                await ensureProductsLoaded()
+            }
         }
     }
 

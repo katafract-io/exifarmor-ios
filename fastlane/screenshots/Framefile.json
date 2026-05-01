@@ -1,0 +1,21 @@
+{
+  "default": {
+    "title": {
+      "color": "#1a1a1a"
+    },
+    "background": "./background.jpg",
+    "padding": 80,
+    "show_complete_frame": false,
+    "use_legacy_iphone_frame": false
+  },
+  "data": [
+    { "filter": "01-gallery",       "title": { "en-US": "Every photo leaks data" } },
+    { "filter": "02-exposure",      "title": { "en-US": "GPS pins your home" } },
+    { "filter": "03-strip-options", "title": { "en-US": "You choose what stays" } },
+    { "filter": "04-progress",      "title": { "en-US": "One tap. Stripped clean." } },
+    { "filter": "05-diff",          "title": { "en-US": "See exactly what's gone" } },
+    { "filter": "06-success",       "title": { "en-US": "Safe to post anywhere" } },
+    { "filter": "07-history",       "title": { "en-US": "Track what you protect" } },
+    { "filter": "08-unlock",        "title": { "en-US": "$0.99. Forever yours." } }
+  ]
+}

@@ -36,6 +36,25 @@ struct HomeView: View {
                 }
             }
         }
+        .onAppear {
+            // Screenshot-mode hook: populate the view-model with marketplace
+            // fixtures + drive to the requested phase. No-op outside screenshot
+            // mode (see ScreenshotMode + MockDataSeeder).
+            MockDataSeeder.seed(into: viewModel, report: report)
+            // Auto-open the strip-options sheet for frame 03.
+            if ScreenshotMode.seedFrame == "03-strip-options" {
+                showStripConfirm = false
+            }
+            // Show the seal-success overlay for frame 06.
+            if ScreenshotMode.seedFrame == "06-success" {
+                sealThumbnail = viewModel.stripResults.first?.cleanedImage
+                showSealSuccess = true
+            }
+            // Show the Pro upgrade sheet for frame 08.
+            if ScreenshotMode.seedFrame == "08-unlock" {
+                showUpgradeSheet = true
+            }
+        }
         .preferredColorScheme(.dark)
         .photosPicker(
             isPresented: $showPhotoPicker,

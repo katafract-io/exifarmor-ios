@@ -1,26 +1,30 @@
 # Katafract screenshot pipeline — fastlane snapshot config
+#
+# Drives the 8-frame ExifArmor App Store capture (iPhone 6.9" + iPad 13").
+# Per-frame launch arguments are set inside ScreenshotTests.swift, so we
+# leave the global `launch_arguments` empty here.
 
 project("./ExifArmor.xcodeproj")
 
 devices([
-  "iPhone 17 Pro Max",
-  "iPad Pro 13-inch (M5)"
+  "iPhone 17 Pro Max",        # 6.9" — 1320 x 2868
+  "iPad Pro 13-inch (M4)",    # 13"  — 2064 x 2752
 ])
 
 ios_version("26.4")
 
 languages(["en-US"])
 
-scheme("ExifArmorScreenshots")
+scheme("ExifArmorUITests")
 
 output_directory("./fastlane/screenshots")
 clear_previous_screenshots(true)
 override_status_bar(true)
 override_status_bar_arguments("--time 9:41 --batteryState charged --batteryLevel 100")
 
-launch_arguments([
-  "--screenshots",
-])
+# Per-test launch arguments live in ExifArmorUITests/ScreenshotTests.swift —
+# do not set globals here or they will leak into every lane.
+launch_arguments([])
 
 skip_open_summary(true)
 concurrent_simulators(true)
