@@ -20,6 +20,11 @@ struct ExposurePreviewView: View {
                         // Privacy score banner
                         privacyScoreBanner(photo)
 
+                        // Live photo warning
+                        if viewModel.livePhotoWarning {
+                            livePhotoWarningBanner
+                        }
+
                         // Metadata sections
                         VStack(spacing: 16) {
                             if photo.hasLocation {
@@ -140,6 +145,41 @@ struct ExposurePreviewView: View {
         if score >= 7 { return Color("WarningRed") }
         if score >= 4 { return Color("AccentGold") }
         return Color("SuccessGreen")
+    }
+
+    private var livePhotoWarningBanner: some View {
+        VStack(spacing: 12) {
+            HStack(spacing: 12) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.title2)
+                    .foregroundStyle(Color("WarningRed"))
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Live Photo Detected")
+                        .font(.headline.weight(.bold))
+                        .foregroundStyle(Color("WarningRed"))
+
+                    Text("Live Photos contain paired video with full GPS coordinates. Convert to still image to safely strip all metadata.")
+                        .font(.caption)
+                        .foregroundStyle(Color("TextSecondary"))
+                }
+
+                Spacer()
+            }
+
+            Button(action: onStrip) {
+                Label("Convert to Still and Clean", systemImage: "checkmark.circle.fill")
+                    .font(.subheadline.weight(.medium))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(Color("WarningRed"))
+                    .foregroundStyle(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+            }
+        }
+        .padding(16)
+        .background(Color("WarningRed").opacity(0.12))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
     }
 
     private func videoPrivacyBanner(_ video: VideoMetadata) -> some View {

@@ -70,6 +70,7 @@ final class PhotoStripViewModel {
     var processedCount: Int = 0
     var totalCount: Int = 0
     var livePhotoCount: Int = 0
+    var livePhotoWarning: Bool = false
     var videoStripFailures: Int = 0
 
     // MARK: - Load Selected Photos
@@ -91,6 +92,7 @@ final class PhotoStripViewModel {
             statusMessage = "Scanning selected media…"
             totalCount = selectedItems.count
             livePhotoCount = 0
+            livePhotoWarning = false
             videoStripFailures = 0
         }
 
@@ -133,6 +135,7 @@ final class PhotoStripViewModel {
                     if isLivePhoto {
                         await MainActor.run {
                             self.livePhotoCount += 1
+                            self.livePhotoWarning = true
                         }
                     }
                     var metadata = MetadataService.extractMetadata(from: data, image: image)
