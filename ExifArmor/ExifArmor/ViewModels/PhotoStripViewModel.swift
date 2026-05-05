@@ -215,13 +215,22 @@ final class PhotoStripViewModel {
 
             if let cleanedData = StripService.stripMetadata(
                 from: metadata.imageData, options: stripOptions
-            ),
-               let cleanedImage = UIImage(data: cleanedData) {
+            ) {
+                let tempDir = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("ExifArmorStrip", isDirectory: true)
+                try? FileManager.default.createDirectory(at: tempDir, withIntermediateDirectories: true)
+                let ext = preferredImageExtension(for: metadata.sourceUTI)
+                let tempURL = tempDir.appendingPathComponent("\(UUID().uuidString).\(ext)")
+                try? cleanedData.write(to: tempURL, options: .atomic)
+
+                let fullImage = UIImage(data: cleanedData) ?? UIImage()
+                let thumbSize = CGSize(width: 512, height: 512)
+                let thumbnail = fullImage.preparingThumbnail(of: thumbSize) ?? fullImage
 
                 let result = StripResult(
                     originalMetadata: metadata,
-                    cleanedImageData: cleanedData,
-                    cleanedImage: cleanedImage,
+                    cleanedImageURL: tempURL,
+                    cleanedImage: thumbnail,
                     fieldsRemoved: fieldsToRemove
                 )
                 results.append(result)
@@ -291,7 +300,9 @@ final class PhotoStripViewModel {
     func saveAllToPhotoLibrary() async -> Bool {
         do {
             for result in stripResults {
-                try await saveToPhotoLibrary(data: result.cleanedImageData)
+                if let data = result.cleanedImageData {
+                    try await saveToPhotoLibrary(data: data)
+                }
             }
             for url in videoStripResults {
                 try await PHPhotoLibrary.shared().performChanges {
@@ -340,7 +351,7 @@ final class PhotoStripViewModel {
             let ext = preferredImageExtension(for: result.originalMetadata.sourceUTI)
             let filename = "ExifArmor_\(UUID().uuidString.prefix(8)).\(ext)"
             let url = tmpDir.appendingPathComponent(filename)
-            let data = result.cleanedImageData
+            guard let data = result.cleanedImageData else { return nil }
             do {
                 try data.write(to: url, options: .atomic)
                 return url
@@ -360,6 +371,9 @@ final class PhotoStripViewModel {
         cleanupImportedVideos()
         for url in videoStripResults {
             try? FileManager.default.removeItem(at: url)
+        }
+        for result in stripResults {
+            try? FileManager.default.removeItem(at: result.cleanedImageURL)
         }
         phase = .idle
         selectedItems = []
