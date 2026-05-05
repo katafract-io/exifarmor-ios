@@ -102,12 +102,28 @@ struct StripService {
             return nil
         }
 
-        // Re-write the raw image with only the cleaned properties.
-        // CGImageDestinationAddImageFromSource is NOT used here because it bleeds
-        // source metadata through even when keys are removed from the properties
-        // dictionary. Using AddImage with the decoded CGImage ensures only the
-        // explicitly provided mutableProperties are written to the output.
-        CGImageDestinationAddImage(destination, image, mutableProperties as CFDictionary)
+        // Strip XMP GPS via CGImageMetadata API. CGImageDestinationAddImage re-emits
+        // the original XMP block even when GPS is removed from mutableProperties.
+        // CGImageDestinationAddImageAndMetadata lets us pass a stripped metadata object.
+        let strippedMeta: CGImageMetadata?
+        if options.removeAll {
+            strippedMeta = nil  // drop entire XMP block
+        } else if (options.removeLocation),
+                  let srcMeta = CGImageSourceCopyMetadataAtIndex(source, 0, nil),
+                  let mutableMeta = CGImageMetadataCreateMutableCopy(srcMeta) {
+            let gpsTags: [CFString] = [
+                "exif:GPSLatitude", "exif:GPSLongitude", "exif:GPSAltitude",
+                "exif:GPSAltitudeRef", "exif:GPSLatitudeRef", "exif:GPSLongitudeRef",
+                "exif:GPSTimeStamp", "exif:GPSDateStamp", "exif:GPSSpeed",
+                "exif:GPSTrack", "exif:GPSImgDirection",
+            ]
+            for tag in gpsTags { CGImageMetadataRemoveTagWithPath(mutableMeta, nil, tag) }
+            strippedMeta = mutableMeta
+        } else {
+            strippedMeta = CGImageSourceCopyMetadataAtIndex(source, 0, nil)
+        }
+
+        CGImageDestinationAddImageAndMetadata(destination, image, strippedMeta, mutableProperties as CFDictionary)
 
         guard CGImageDestinationFinalize(destination) else {
             return nil
@@ -117,6 +133,16 @@ struct StripService {
         if let verifySource = CGImageSourceCreateWithData(destData as CFData, nil),
            let outputUTI = CGImageSourceGetType(verifySource) {
             assert(outputUTI == uti, "[StripService] UTI mismatch: input \(uti) → output \(outputUTI)")
+        }
+        // Verify GPS absent from XMP in output
+        if (options.removeAll || options.removeLocation),
+           let verifySource = CGImageSourceCreateWithData(destData as CFData, nil),
+           let outMeta = CGImageSourceCopyMetadataAtIndex(verifySource, 0, nil) {
+            let gpsTags: [CFString] = ["exif:GPSLatitude", "exif:GPSLongitude", "exif:GPSAltitude"]
+            for tag in gpsTags {
+                assert(CGImageMetadataCopyTagWithPath(outMeta, nil, tag) == nil,
+                       "[StripService] XMP GPS tag still present after strip: \(tag)")
+            }
         }
         #endif
 
