@@ -201,12 +201,14 @@ struct StripService {
             return
         }
 
-        let tags = CGImageMetadataCopyTagsWithPath(metadata, nil, nil) as? [CGImageMetadataTag] ?? []
-        for tag in tags {
-            if let prefix = CGImageMetadataTagCopyPrefix(tag) as String?,
-               let name = CGImageMetadataTagCopyName(tag) as String? {
-                let fullTag = "\(prefix):\(name)"
-                assert(!fullTag.contains("GPS"), "[StripService] GPS XMP tag leaked through: \(fullTag)")
+        // Use CGImageMetadataCopyTags to enumerate all tags in the metadata
+        if let tagsArray = CGImageMetadataCopyTags(metadata) as? [CGImageMetadataTag] {
+            for tag in tagsArray {
+                if let prefix = CGImageMetadataTagCopyPrefix(tag) as String?,
+                   let name = CGImageMetadataTagCopyName(tag) as String? {
+                    let fullTag = "\(prefix):\(name)"
+                    assert(!fullTag.contains("GPS"), "[StripService] GPS XMP tag leaked through: \(fullTag)")
+                }
             }
         }
     }
