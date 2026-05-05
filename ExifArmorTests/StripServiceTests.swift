@@ -392,7 +392,7 @@ final class StripServiceTests: XCTestCase {
             return
         }
 
-        let tags = CGImageMetadataCopyTagsWithPath(metadata, nil, nil) as? [CGImageMetadataTag] ?? []
+        let tags = CGImageMetadataCopyTags(metadata) as? [CGImageMetadataTag] ?? []
         for tag in tags {
             if let prefix = CGImageMetadataTagCopyPrefix(tag) as String?,
                let name = CGImageMetadataTagCopyName(tag) as String? {
@@ -417,7 +417,7 @@ final class StripServiceTests: XCTestCase {
             return
         }
 
-        let tags = CGImageMetadataCopyTagsWithPath(metadata, nil, nil) as? [CGImageMetadataTag] ?? []
+        let tags = CGImageMetadataCopyTags(metadata) as? [CGImageMetadataTag] ?? []
         var foundGPSTag = false
         for tag in tags {
             if let prefix = CGImageMetadataTagCopyPrefix(tag) as String?,
