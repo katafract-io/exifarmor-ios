@@ -102,6 +102,9 @@ struct StripService {
             return nil
         }
 
+        // Ensure lossless quality (1.0) to prevent lossy re-encoding of JPEG/HEIF
+        mutableProperties[kCGImageDestinationLossyCompressionQuality as String] = 1.0
+
         // Re-write the raw image with only the cleaned properties.
         // CGImageDestinationAddImageFromSource is NOT used here because it bleeds
         // source metadata through even when keys are removed from the properties
