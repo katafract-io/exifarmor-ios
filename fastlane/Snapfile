@@ -8,7 +8,7 @@ project("./ExifArmor.xcodeproj")
 
 devices([
   "iPhone 17 Pro Max",        # 6.9" — 1320 x 2868
-  "iPad Pro 13-inch (M4)",    # 13"  — 2064 x 2752
+  "iPad Pro 13-inch (M5)",    # 13"  — 2064 x 2752
 ])
 
 ios_version("26.4")
