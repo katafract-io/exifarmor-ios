@@ -9,6 +9,7 @@ final class ShareViewController: UIViewController {
 
     private let appGroupID = "group.com.katafract.exifarmor"
     private let sharedProAccessKey = "sharedProAccessUnlocked"
+    private let enclaveGroupID = "group.com.katafract.enclave"
 
     private var imageDataItems: [(Data, String)] = []
     private var cleanedDataItems: [(Data, String)] = []
@@ -27,7 +28,7 @@ final class ShareViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         setupUI()
-        if hasSharedProAccess {
+        if hasProOrEnclaveAccess {
             loadSharedItems()
         } else {
             showPremiumRequired()
