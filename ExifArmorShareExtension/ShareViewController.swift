@@ -368,9 +368,29 @@ final class ShareViewController: UIViewController {
         actionStack.isHidden = true
     }
 
-    private var hasSharedProAccess: Bool {
-        guard let defaults = UserDefaults(suiteName: appGroupID) else { return false }
-        return defaults.bool(forKey: sharedProAccessKey)
+    /// Check for Pro access via ExifArmor purchase OR Enclave/Sovereign platform subscription
+    private var hasProOrEnclaveAccess: Bool {
+        // Check ExifArmor Pro purchase via app group
+        if let defaults = UserDefaults(suiteName: appGroupID),
+           defaults.bool(forKey: sharedProAccessKey) {
+            return true
+        }
+
+        // Check active Enclave/Sovereign platform token via Enclave app group
+        if let enclaveDefaults = UserDefaults(suiteName: enclaveGroupID),
+           let plan = enclaveDefaults.string(forKey: "enclave_plan") {
+            let validPlans = ["enclave", "enclave_annual", "sovereign", "sovereign_annual", "founder"]
+            if validPlans.contains(plan) {
+                // Also check expiry if token_expires_at is stored
+                if let expiry = enclaveDefaults.object(forKey: "enclave_token_expires_at") as? Date,
+                   expiry < Date() {
+                    return false // Token expired
+                }
+                return true
+            }
+        }
+
+        return false
     }
 
     @objc private func shareTapped() {
