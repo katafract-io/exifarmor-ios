@@ -135,12 +135,10 @@ jobs:
 
       - name: Clone docs-internal + commit screenshot logs
         if: always()
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           LOG_DIR="/tmp/docs-internal-logs"
           rm -rf "$LOG_DIR"
-          git clone --depth 1 "https://github.com/${DOCS_INTERNAL_REPO}.git" "$LOG_DIR"
+          git clone --depth 1 "git@github.com:${DOCS_INTERNAL_REPO}.git" "$LOG_DIR"
           TS=$(date -u +%Y%m%d-%H%M%S)
           TAIL=$(tail -50 /tmp/fastlane.log 2>/dev/null || echo "no logs")
           mkdir -p "$LOG_DIR/runbooks/screenshot_runs"
