@@ -31,7 +31,7 @@ jobs:
   regenerate:
     name: Capture + upload screenshots
     runs-on: [ self-hosted, macOS, ios-build, ARM64 ]
-    timeout-minutes: 90
+    timeout-minutes: 120
 
     env:
       APP_NAME: exifarmor
