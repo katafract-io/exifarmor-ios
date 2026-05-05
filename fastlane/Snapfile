@@ -11,8 +11,6 @@ devices([
   "iPad Pro 13-inch (M5)",    # 13"  — 2064 x 2752
 ])
 
-ios_version("26.4")
-
 languages(["en-US"])
 
 scheme("ExifArmorUITests")
