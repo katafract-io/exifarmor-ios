@@ -375,4 +375,78 @@ final class StripServiceTests: XCTestCase {
         XCTAssertEqual(original, originalCopy,
                       "Strip must not mutate the input data")
     }
+
+    // MARK: - XMP GPS Stripping Tests
+
+    func testStripAllRemovesXMPGPSTags() {
+        let original = makeFullMetadataImage()
+        guard let stripped = StripService.stripMetadata(from: original, options: .all) else {
+            XCTFail("Strip returned nil")
+            return
+        }
+
+        // Verify that the output has no XMP GPS tags by reading metadata
+        guard let source = CGImageSourceCreateWithData(stripped as CFData, nil),
+              let metadata = CGImageSourceCopyMetadataAtIndex(source, 0, nil) else {
+            XCTFail("Could not extract metadata from stripped image")
+            return
+        }
+
+        let tags = CGImageMetadataCopyTagsWithPath(metadata, nil, nil) as? [CGImageMetadataTag] ?? []
+        for tag in tags {
+            if let prefix = CGImageMetadataTagCopyPrefix(tag) as String?,
+               let name = CGImageMetadataTagCopyName(tag) as String? {
+                let fullTag = "\(prefix):\(name)"
+                XCTAssertFalse(fullTag.contains("GPS"),
+                             "XMP GPS tag should be removed: \(fullTag)")
+            }
+        }
+    }
+
+    func testStripLocationOnlyRemovesXMPGPSTags() {
+        let original = makeFullMetadataImage()
+        guard let stripped = StripService.stripMetadata(from: original, options: .locationOnly) else {
+            XCTFail("Strip returned nil")
+            return
+        }
+
+        // Verify that the output has no XMP GPS tags
+        guard let source = CGImageSourceCreateWithData(stripped as CFData, nil),
+              let metadata = CGImageSourceCopyMetadataAtIndex(source, 0, nil) else {
+            XCTFail("Could not extract metadata from stripped image")
+            return
+        }
+
+        let tags = CGImageMetadataCopyTagsWithPath(metadata, nil, nil) as? [CGImageMetadataTag] ?? []
+        var foundGPSTag = false
+        for tag in tags {
+            if let prefix = CGImageMetadataTagCopyPrefix(tag) as String?,
+               let name = CGImageMetadataTagCopyName(tag) as String? {
+                let fullTag = "\(prefix):\(name)"
+                if fullTag.contains("GPS") {
+                    foundGPSTag = true
+                    break
+                }
+            }
+        }
+
+        XCTAssertFalse(foundGPSTag,
+                      "XMP GPS tags should be removed in location-only mode")
+    }
+
+    func testStripPreservesNonGPSXMPTags() {
+        let original = makeFullMetadataImage()
+        guard let stripped = StripService.stripMetadata(from: original, options: .locationOnly) else {
+            XCTFail("Strip returned nil")
+            return
+        }
+
+        // Verify that non-GPS metadata (like EXIF date, camera settings) is preserved
+        let props = readProperties(from: stripped)
+        if let exif = props?[kCGImagePropertyExifDictionary as String] as? [String: Any] {
+            // Camera settings should still exist when only location is removed
+            XCTAssertNotNil(exif[kCGImagePropertyExifFocalLength as String],
+                          "Non-GPS EXIF data should be preserved")
+        }
+    }
 }

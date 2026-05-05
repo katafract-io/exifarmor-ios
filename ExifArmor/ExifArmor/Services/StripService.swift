@@ -8,6 +8,7 @@ struct StripService {
 
     /// Strip metadata from image data based on the given options.
     /// Returns new image data with metadata removed, preserving image quality.
+    /// Uses CGImageMetadata API to ensure XMP GPS tags are properly removed.
     static func stripMetadata(from data: Data, options: StripOptions) -> Data? {
         guard let source = CGImageSourceCreateWithData(data as CFData, nil),
               let uti = CGImageSourceGetType(source),
@@ -102,12 +103,27 @@ struct StripService {
             return nil
         }
 
-        // Re-write the raw image with only the cleaned properties.
-        // CGImageDestinationAddImageFromSource is NOT used here because it bleeds
-        // source metadata through even when keys are removed from the properties
-        // dictionary. Using AddImage with the decoded CGImage ensures only the
-        // explicitly provided mutableProperties are written to the output.
-        CGImageDestinationAddImage(destination, image, mutableProperties as CFDictionary)
+        // Fetch and clean up XMP metadata to remove GPS tags that iPhone Pro embeds.
+        // iPhone 14/15/16 Pro embeds location as XMP, and we must strip it at the metadata
+        // level using CGImageMetadata APIs, not just the property dictionary.
+        var metadata: CGImageMetadata?
+        if let sourceMetadata = CGImageSourceCopyMetadataAtIndex(source, 0, nil) {
+            if let mutableMetadata = CGImageMetadataCreateMutableCopy(sourceMetadata) {
+                stripXMPGPSTags(from: mutableMetadata, removeLocation: options.removeLocation || options.removeAll)
+                metadata = mutableMetadata
+            } else {
+                metadata = sourceMetadata
+            }
+        }
+
+        // Use CGImageDestinationAddImageAndMetadata to ensure cleaned metadata is written.
+        // This respects both the property dictionary and the CGImageMetadata object,
+        // preventing XMP GPS tags from bleeding through on iPhone Pro devices.
+        if let metadata = metadata {
+            CGImageDestinationAddImageAndMetadata(destination, image, metadata, mutableProperties as CFDictionary)
+        } else {
+            CGImageDestinationAddImage(destination, image, mutableProperties as CFDictionary)
+        }
 
         guard CGImageDestinationFinalize(destination) else {
             return nil
@@ -117,10 +133,82 @@ struct StripService {
         if let verifySource = CGImageSourceCreateWithData(destData as CFData, nil),
            let outputUTI = CGImageSourceGetType(verifySource) {
             assert(outputUTI == uti, "[StripService] UTI mismatch: input \(uti) → output \(outputUTI)")
+            // Verify no XMP GPS tags remain
+            assertNoXMPGPSTags(in: destData as Data)
         }
         #endif
 
         return destData as Data
+    }
+
+    /// Strip GPS-related XMP tags from a mutable CGImageMetadata object.
+    /// Removes tags like:
+    /// - exif:GPSLatitude
+    /// - exif:GPSLongitude
+    /// - exif:GPSAltitude
+    /// - exif:GPSDateStamp
+    /// - exif:GPSTimeStamp
+    /// - And other GPS-specific XMP namespaced properties
+    private static func stripXMPGPSTags(from metadata: CGMutableImageMetadata, removeLocation: Bool) {
+        guard removeLocation else { return }
+
+        // Common XMP namespace prefixes for GPS data
+        let gpsNamespaces = [
+            "exif",   // exif:GPSLatitude, exif:GPSLongitude, etc.
+            "exifEx", // exif:GPSLatitude (extended)
+            "Exif"    // Case variant
+        ]
+
+        let gpsTags = [
+            "GPSLatitude",
+            "GPSLongitude",
+            "GPSAltitude",
+            "GPSAltitudeRef",
+            "GPSDateStamp",
+            "GPSTimeStamp",
+            "GPSMapDatum",
+            "GPSVersionID",
+            "GPSSpeed",
+            "GPSSpeedRef",
+            "GPSTrack",
+            "GPSTrackRef",
+            "GPSImgDirection",
+            "GPSImgDirectionRef",
+            "GPSDestBearing",
+            "GPSDestBearingRef",
+            "GPSDestDistance",
+            "GPSDestDistanceRef",
+            "GPSProcessingMethod",
+            "GPSAreaInformation",
+            "GPSSatellites",
+            "GPSDOP",
+            "GPSHPositioningError"
+        ]
+
+        for namespace in gpsNamespaces {
+            for tag in gpsTags {
+                let key = "\(namespace):\(tag)"
+                CGImageMetadataRemoveTagWithPath(metadata, nil, key as CFString)
+            }
+        }
+    }
+
+    /// Assertion function: verify that output image has no XMP GPS tags.
+    /// Called in DEBUG builds after finalization to catch any GPS metadata that leaked through.
+    private static func assertNoXMPGPSTags(in data: Data) {
+        guard let source = CGImageSourceCreateWithData(data as CFData, nil),
+              let metadata = CGImageSourceCopyMetadataAtIndex(source, 0, nil) else {
+            return
+        }
+
+        let tags = CGImageMetadataCopyTagsWithPath(metadata, nil, nil) as? [CGImageMetadataTag] ?? []
+        for tag in tags {
+            if let prefix = CGImageMetadataTagCopyPrefix(tag) as String?,
+               let name = CGImageMetadataTagCopyName(tag) as String? {
+                let fullTag = "\(prefix):\(name)"
+                assert(!fullTag.contains("GPS"), "[StripService] GPS XMP tag leaked through: \(fullTag)")
+            }
+        }
     }
 
     /// Count how many metadata fields would be removed by the given options.
