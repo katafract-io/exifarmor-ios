@@ -6,9 +6,18 @@
 	<false/>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>ExifArmor needs permission to save cleaned photos to your library.</string>
-	<key>UISupportedInterfaceOrientations</key>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>ExifArmor needs access to your photos to scan for hidden metadata and save cleaned copies.</string>
+	<key>UIInterfaceOrientation</key>
 	<array>
 		<string>UIInterfaceOrientationPortrait</string>
+	</array>
+	<key>UIInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 </dict>
 </plist>
