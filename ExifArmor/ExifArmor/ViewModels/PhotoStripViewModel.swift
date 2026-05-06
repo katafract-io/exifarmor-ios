@@ -71,9 +71,11 @@ final class PhotoStripViewModel {
     var totalCount: Int = 0
     var livePhotoCount: Int = 0
     var videoStripFailures: Int = 0
+    var failedCount: Int = 0
 
     init() {
         // If in screenshot mode with seed data, pre-populate the view model
+        #if DEBUG
         if CommandLine.arguments.contains("--screenshots") {
             // Check for --seed-data marketplace (preview state)
             if isMarketplaceSeedActive() {
@@ -88,6 +90,7 @@ final class PhotoStripViewModel {
                 phase = .done
             }
         }
+        #endif
     }
 
     private func isMarketplaceSeedActive() -> Bool {
@@ -200,6 +203,7 @@ final class PhotoStripViewModel {
             currentItemProgress = 0
             statusMessage = "Preparing media cleanup…"
             totalCount = analyzedPhotos.count + (stripOptions.includeVideos ? analyzedVideos.count : 0)
+            failedCount = 0
         }
 
         var results: [StripResult] = []
@@ -225,6 +229,10 @@ final class PhotoStripViewModel {
                     fieldsRemoved: fieldsToRemove
                 )
                 results.append(result)
+            } else {
+                await MainActor.run {
+                    failedCount += 1
+                }
             }
 
             await MainActor.run {
@@ -373,6 +381,7 @@ final class PhotoStripViewModel {
         totalCount = 0
         livePhotoCount = 0
         videoStripFailures = 0
+        failedCount = 0
         applySavedDefaultStripMode()
     }
 

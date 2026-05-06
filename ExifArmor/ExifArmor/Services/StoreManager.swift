@@ -6,6 +6,9 @@ import StoreKit
 @Observable
 final class StoreManager {
 
+    /// IMPORTANT: Product IDs use mixed case (e.g., `com.katafract.ExifArmor.Pro`)
+    /// to match App Store Connect registration. Do NOT change to lowercase
+    /// without updating the IAP products in ASC first.
     nonisolated static let proProductID = "com.katafract.ExifArmor.Pro"
     nonisolated static let tipProductIDs = [
         "com.katafract.ExifArmor.Tip.Small",

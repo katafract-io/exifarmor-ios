@@ -1,3 +1,4 @@
+#if DEBUG
 import Foundation
 import UIKit
 
@@ -190,3 +191,4 @@ struct MockDataSeeder {
         }
     }
 }
+#endif

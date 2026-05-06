@@ -1,0 +1,49 @@
+name: Binary Network Call Check
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  check-network-calls:
+    name: Verify no unauthorized network calls
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check for hardcoded network endpoints in source
+        run: |
+          echo "Checking for unauthorized hardcoded network calls..."
+          # Fail if any Swift file outside of Services/ or Tests/ directly references http/https URLs
+          VIOLATIONS=$(grep -rn "URLRequest\|URLSession\|WKWebView\|NSURLConnection" \
+            --include="*.swift" \
+            ExifArmor/ExifArmor/Views/ \
+            ExifArmor/ExifArmor/ViewModels/ \
+            ExifArmor/ExifArmor/Models/ \
+            2>/dev/null | grep -v "//.*URLSession" || true)
+          if [ -n "$VIOLATIONS" ]; then
+            echo "ERROR: Network calls found outside of Services layer:"
+            echo "$VIOLATIONS"
+            exit 1
+          fi
+          echo "✓ OK: No unauthorized network calls found in Views/ViewModels/Models"
+
+      - name: Check for hardcoded URLs
+        run: |
+          echo "Checking for hardcoded URLs in non-Services code..."
+          HARDCODED=$(grep -rn '"https://\|"http://' \
+            --include="*.swift" \
+            ExifArmor/ExifArmor/Views/ \
+            ExifArmor/ExifArmor/ViewModels/ \
+            ExifArmor/ExifArmor/Models/ \
+            ExifArmor/ExifArmor/App/ \
+            2>/dev/null || true)
+          if [ -n "$HARDCODED" ]; then
+            echo "WARNING: Hardcoded URLs found (review if intentional):"
+            echo "$HARDCODED"
+          else
+            echo "✓ OK: No hardcoded URLs found"
+          fi
+          echo "Network check complete"
