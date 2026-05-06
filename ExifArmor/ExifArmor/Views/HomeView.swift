@@ -13,8 +13,8 @@ struct HomeView: View {
     @State private var showShareSheet = false
     @State private var showSavedAlert = false
     @State private var showStripConfirm = false
-    @State private var showSealSuccess = false
-    @State private var sealThumbnail: UIImage?
+    @State private var showScrubSuccess = false
+    @State private var scrubThumbnail: UIImage?
 
     var body: some View {
         ZStack {
@@ -71,10 +71,10 @@ struct HomeView: View {
                 }
             )
         }
-        .fullScreenCover(isPresented: $showSealSuccess) {
-            SealSuccessView(
-                thumbnail: sealThumbnail,
-                onDismiss: { showSealSuccess = false }
+        .fullScreenCover(isPresented: $showScrubSuccess) {
+            ScrubSuccessView(
+                thumbnail: scrubThumbnail,
+                onDismiss: { showScrubSuccess = false }
             )
         }
         .alert("Saved!", isPresented: $showSavedAlert) {
@@ -202,7 +202,7 @@ struct HomeView: View {
             Image(systemName: "photo")
                 .font(.system(size: 60))
                 .foregroundStyle(Color.kataGold.opacity(0.5))
-            Text("No photos sealed yet.")
+            Text("No photos scrubbed yet.")
                 .font(.kataDisplay(18))
                 .foregroundStyle(Color.kataIce)
             Text("Pick one or more to strip EXIF metadata.")
@@ -376,9 +376,9 @@ struct HomeView: View {
                 fieldsRemoved: viewModel.totalFieldsRemoved,
                 hadGPS: viewModel.hadLocationData
             )
-            // Show ceremonial seal overlay
-            sealThumbnail = viewModel.stripResults.first?.cleanedImage
-            showSealSuccess = true
+            // Show ceremonial scrub overlay
+            scrubThumbnail = viewModel.stripResults.first?.cleanedImage
+            showScrubSuccess = true
         }
     }
 
