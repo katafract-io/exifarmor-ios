@@ -38,16 +38,7 @@ struct StripResultView: View {
                 }
 
                 if viewModel.stripResults.contains(where: { $0.originalMetadata.isLivePhoto }) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "info.circle")
-                            .foregroundStyle(Color("AccentGold"))
-                        Text("Live Photo video components are not modified. Only the still photo is cleaned.")
-                            .font(.caption)
-                            .foregroundStyle(Color("TextSecondary"))
-                    }
-                    .padding(12)
-                    .background(Color("CardBackground"))
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                    LivePhotoWarningCard()
                 }
 
                 metadataOutcomeSummary
@@ -435,6 +426,38 @@ private struct FlowLayout: View {
                     .background(tint.opacity(0.12))
                     .clipShape(Capsule())
             }
+        }
+    }
+}
+
+private struct LivePhotoWarningCard: View {
+    @State private var showInfo = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .foregroundStyle(Color("AccentGold"))
+                Text("Live Photo: video component not cleaned")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(Color("TextPrimary"))
+            }
+            Text("The still image is cleaned, but the .mov companion still contains GPS data. To fully remove location, convert to Still Photo in the Photos app first.")
+                .font(.caption)
+                .foregroundStyle(Color("TextSecondary"))
+            Button("How to convert to Still Photo →") {
+                showInfo = true
+            }
+            .font(.caption.weight(.medium))
+            .foregroundStyle(Color("AccentCyan"))
+        }
+        .padding(12)
+        .background(Color("CardBackground"))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .alert("Convert Live Photo to Still", isPresented: $showInfo) {
+            Button("OK") {}
+        } message: {
+            Text("In the Photos app: open the Live Photo → tap Edit → tap the Live indicator at the top to turn it off → tap Done. Then re-import the still into ExifArmor.")
         }
     }
 }
