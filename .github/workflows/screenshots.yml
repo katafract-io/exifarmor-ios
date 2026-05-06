@@ -121,6 +121,22 @@ jobs:
           SHOT_COUNT=$(grep -c "screenshot uploaded" "$OUTFILE" || echo "0")
           echo "shot_count=${SHOT_COUNT}" >> "$GITHUB_OUTPUT"
 
+      - name: Frame screenshots with device bezels + marketing banners
+        run: |
+          # Use same Ruby probe as Install step
+          RUBY_BIN=""
+          if [ -x "${HOME}/.rbenv/versions/3.3.11/bin/ruby" ]; then
+            RUBY_BIN="${HOME}/.rbenv/versions/3.3.11/bin/ruby"
+          elif command -v rbenv >/dev/null 2>&1; then
+            eval "$(rbenv init - bash)"
+            RUBY_BIN="$(rbenv which ruby 2>/dev/null)"
+          fi
+          if [ -z "$RUBY_BIN" ] || [ ! -x "$RUBY_BIN" ]; then
+            RUBY_BIN="$(command -v ruby 2>/dev/null)"
+          fi
+          export PATH="$(dirname "$RUBY_BIN"):$PATH"
+          $RUBY_BIN -S bundle exec fastlane frameit silver --path fastlane/screenshots || { echo "warn: frameit step failed (may be missing fonts or environment issue on this runner)"; exit 0; }
+
       - name: Clone docs-internal + commit screenshot logs
         if: always()
         env:
