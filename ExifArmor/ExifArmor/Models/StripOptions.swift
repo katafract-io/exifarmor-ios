@@ -45,7 +45,9 @@ struct StripOptions: Codable, Equatable, Hashable {
 struct StripResult: Identifiable {
     let id = UUID()
     let originalMetadata: PhotoMetadata
-    let cleanedImageData: Data
-    let cleanedImage: UIImage
+    let cleanedImageURL: URL
+    let cleanedImage: UIImage   // 512px thumbnail — display only
     let fieldsRemoved: Int
+
+    var cleanedImageData: Data? { try? Data(contentsOf: cleanedImageURL) }
 }

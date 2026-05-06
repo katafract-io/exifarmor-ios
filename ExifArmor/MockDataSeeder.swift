@@ -28,11 +28,14 @@ struct MockDataSeeder {
         let originals = buildMarketplacePhotos()
         let stripResults = originals.map { original in
             // Mock a cleaned version with 0 metadata fields
-            let cleanedData = original.imageData
             let cleanedImage = original.image
+            let cleanedImageURL = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".jpg")
+            if let cleanedData = cleanedImage.jpegData(compressionQuality: 0.9) {
+                try? cleanedData.write(to: cleanedImageURL)
+            }
             return StripResult(
                 originalMetadata: original,
-                cleanedImageData: cleanedData,
+                cleanedImageURL: cleanedImageURL,
                 cleanedImage: cleanedImage,
                 fieldsRemoved: original.exposedFieldCount
             )
