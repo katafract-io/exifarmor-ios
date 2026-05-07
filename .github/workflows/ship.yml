@@ -2,7 +2,6 @@ name: Ship to TestFlight
 
 on:
   push:
-    branches: [ main, "release/*" ]
     tags: [ "v*" ]
   workflow_dispatch:
     inputs:
@@ -31,11 +30,11 @@ jobs:
           ENT_FILE="ExifArmor.entitlements"
           EXPECTED="group.com.katafract.enclave"
           if [ ! -f "$ENT_FILE" ]; then
-            echo "::error file=$ENT_FILE::Entitlements file not found at expected path"
+            echo "::error file= ENT_FILE::Entitlements file not found at expected path"
             exit 1
           fi
           if ! grep -q "$EXPECTED" "$ENT_FILE"; then
-            echo "::error file=$ENT_FILE::Missing App Group $EXPECTED"
+            echo "::error file=$ENT_FIME::Missing App Group $EXPECTED"
             exit 1
           fi
           echo "::notice::App Group $EXPECTED present"
@@ -370,8 +369,8 @@ jobs:
           else
             curl -s -X POST https://webhooks.katafract.io/webhook/alerts \
               -H "Content-Type: application/json" \
-              -H "X-Webhook-Secret: ${{ secrets.MATRIX_WEBHOOK_SECRET }}" \
-              -d "{\"text\":\"⚠️ ${{ github.repository }} build $BUILD_NUM upload OK but tester attach failed (HTTP $CODE)\"}" || true
+              -H "X-Webhook-Secret: \${{ secrets.MATRIX_WEBHOOK_SECRET }}" \
+              -d "{\"text\":\"⚠️ ${{ github.repository }} build $BUILD_NUM upload OK but tester attach failed (HTTP $CODE)\" }" || true
           fi
           set -e
 
@@ -379,7 +378,7 @@ jobs:
         if: success() && github.event.inputs.skip_upload != 'true'
         run: |
           UUID=$(grep -oE 'Delivery UUID: [a-f0-9-]+' /tmp/altool.log 2>/dev/null | head -1 | cut -d' ' -f3 || echo "unknown")
-          IPA_SIZE=$(ls -lh "$EXPORT_PATH"/*.ipa 2>/dev/null | awk '{print $5}' || echo "?")
+          IPA_SIZE=$(ls -lh  "$EXPORT_PATH"/*.ipa 2>/dev/null | awk '{print $5}' || echo "?")
           PAYLOAD="{\"text\":\"🚀 \${{ github.repository }} #\$BUILD_NUM uploaded to TestFlight (delivery \$UUID) · IPA \$IPA_SIZE\"}"
           curl -s -X POST https://webhooks.katafract.io/webhook/deploys \
             -H "Content-Type: application/json" \
