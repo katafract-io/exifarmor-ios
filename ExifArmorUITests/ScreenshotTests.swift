@@ -53,7 +53,7 @@ class ScreenshotTests: XCTestCase {
         snapshot("02-metadata-exposure")
     }
 
-    // MARK: - Test 3: Strip options sheet
+    // MARK: - Test 3: Strip options sheet (Custom Strip chooser)
     func test03_stripOptions() throws {
         let app = launchApp(args: [
             "--screenshots",
@@ -65,38 +65,35 @@ class ScreenshotTests: XCTestCase {
         let navBar = app.navigationBars["ExifArmor"]
         XCTAssertTrue(navBar.waitForExistence(timeout: 5))
 
-        // Look for a "Strip" or "Options" button and tap it
-        let stripButton = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Strip' OR label CONTAINS[c] 'Options'")).element(boundBy: 0)
-        if stripButton.exists {
-            stripButton.tap()
-            // Wait for sheet to appear (check for a checkbox or option label)
-            let optionLabel = app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] %@", "Remove")).element(boundBy: 0)
-            XCTAssertTrue(optionLabel.waitForExistence(timeout: 5), "Strip options sheet should appear")
+        // Tap "Custom Strip" specifically — "Strip All Metadata" shows a confirm sheet, not the options sheet
+        let customStripButton = app.buttons.matching(
+            NSPredicate(format: "label CONTAINS[c] 'Custom'")
+        ).firstMatch
+        if customStripButton.waitForExistence(timeout: 4) {
+            customStripButton.tap()
+            let optionLabel = app.staticTexts.matching(
+                NSPredicate(format: "label CONTAINS[c] 'Remove'")
+            ).firstMatch
+            XCTAssertTrue(optionLabel.waitForExistence(timeout: 5), "Strip options sheet should appear with 'Remove' section")
         }
 
         snapshot("03-strip-options")
     }
 
-    // MARK: - Test 4: Stripping in progress (60% progress indicator)
+    // MARK: - Test 4: Stripping in progress (frozen at ~65%)
     func test04_strippingProgress() throws {
+        // marketplace-stripping preset sets phase = .stripping with processedCount 2/4
+        // and currentItemProgress 0.6 — renders KataProgressRing at ~65% deterministically
         let app = launchApp(args: [
             "--screenshots",
             "--skip-onboarding",
             "--mock-subscribed",
-            "--seed-data", "marketplace"
+            "--seed-data", "marketplace-stripping"
         ])
 
         let navBar = app.navigationBars["ExifArmor"]
         XCTAssertTrue(navBar.waitForExistence(timeout: 5))
-
-        // Initiate strip action (e.g., tap Strip All button)
-        let stripAllButton = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'Strip All'")).element(boundBy: 0)
-        if stripAllButton.exists {
-            stripAllButton.tap()
-            // Wait for progress indicator
-            let progressBar = app.progressIndicators.element(boundBy: 0)
-            XCTAssertTrue(progressBar.waitForExistence(timeout: 5), "Progress indicator should appear during stripping")
-        }
+        sleep(1)
 
         snapshot("04-stripping-progress")
     }

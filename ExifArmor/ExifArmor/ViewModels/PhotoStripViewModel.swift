@@ -77,34 +77,34 @@ final class PhotoStripViewModel {
         // If in screenshot mode with seed data, pre-populate the view model
         #if DEBUG
         if CommandLine.arguments.contains("--screenshots") {
-            // Check for --seed-data marketplace (preview state)
-            if isMarketplaceSeedActive() {
+            switch seedDataPreset() {
+            case "marketplace":
                 analyzedPhotos = MockDataSeeder.seedMarketplacePhotos()
                 phase = .preview
-            }
-            // Check for --seed-data marketplace-stripped (done state)
-            else if isMarketplaceStrippedSeedActive() {
+            case "marketplace-stripped":
                 let (originals, results) = MockDataSeeder.seedMarketplaceStripped()
                 analyzedPhotos = originals
                 stripResults = results
                 phase = .done
+            case "marketplace-stripping":
+                analyzedPhotos = MockDataSeeder.seedMarketplacePhotos()
+                totalCount = 4
+                processedCount = 2
+                currentItemProgress = 0.6
+                statusMessage = "Cleaning photo 3 of 4…"
+                phase = .stripping
+            default:
+                break
             }
         }
         #endif
     }
 
-    private func isMarketplaceSeedActive() -> Bool {
+    private func seedDataPreset() -> String? {
         guard let idx = CommandLine.arguments.firstIndex(of: "--seed-data"),
               idx + 1 < CommandLine.arguments.count
-        else { return false }
-        return CommandLine.arguments[idx + 1] == "marketplace"
-    }
-
-    private func isMarketplaceStrippedSeedActive() -> Bool {
-        guard let idx = CommandLine.arguments.firstIndex(of: "--seed-data"),
-              idx + 1 < CommandLine.arguments.count
-        else { return false }
-        return CommandLine.arguments[idx + 1] == "marketplace-stripped"
+        else { return nil }
+        return CommandLine.arguments[idx + 1]
     }
 
     // MARK: - Load Selected Photos
