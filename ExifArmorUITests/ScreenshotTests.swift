@@ -14,15 +14,12 @@ class ScreenshotTests: XCTestCase {
 
     // MARK: - Test 1: Home with marketplace photos (preview state)
     func test01_homeMarketplacePhotos() throws {
-        let app = XCUIApplication()
-        app.launchArguments = [
+        let app = launchApp(args: [
             "--screenshots",
             "--skip-onboarding",
             "--mock-subscribed",
             "--seed-data", "marketplace"
-        ]
-        setupSnapshot(app)
-        app.launch()
+        ])
 
         // Wait for the ExifArmor nav title to appear
         let navBar = app.navigationBars["ExifArmor"]
@@ -33,15 +30,12 @@ class ScreenshotTests: XCTestCase {
 
     // MARK: - Test 2: Metadata exposure view (showing GPS/device/timestamp)
     func test02_metadataExposure() throws {
-        let app = XCUIApplication()
-        app.launchArguments = [
+        let app = launchApp(args: [
             "--screenshots",
             "--skip-onboarding",
             "--mock-subscribed",
             "--seed-data", "marketplace"
-        ]
-        setupSnapshot(app)
-        app.launch()
+        ])
 
         // Wait for nav to appear
         let navBar = app.navigationBars["ExifArmor"]
@@ -61,15 +55,12 @@ class ScreenshotTests: XCTestCase {
 
     // MARK: - Test 3: Strip options sheet
     func test03_stripOptions() throws {
-        let app = XCUIApplication()
-        app.launchArguments = [
+        let app = launchApp(args: [
             "--screenshots",
             "--skip-onboarding",
             "--mock-subscribed",
             "--seed-data", "marketplace"
-        ]
-        setupSnapshot(app)
-        app.launch()
+        ])
 
         let navBar = app.navigationBars["ExifArmor"]
         XCTAssertTrue(navBar.waitForExistence(timeout: 5))
@@ -88,15 +79,12 @@ class ScreenshotTests: XCTestCase {
 
     // MARK: - Test 4: Stripping in progress (60% progress indicator)
     func test04_strippingProgress() throws {
-        let app = XCUIApplication()
-        app.launchArguments = [
+        let app = launchApp(args: [
             "--screenshots",
             "--skip-onboarding",
             "--mock-subscribed",
             "--seed-data", "marketplace"
-        ]
-        setupSnapshot(app)
-        app.launch()
+        ])
 
         let navBar = app.navigationBars["ExifArmor"]
         XCTAssertTrue(navBar.waitForExistence(timeout: 5))
@@ -115,15 +103,12 @@ class ScreenshotTests: XCTestCase {
 
     // MARK: - Test 5: Clean result with metadata diff (0 fields remaining)
     func test05_cleanResult() throws {
-        let app = XCUIApplication()
-        app.launchArguments = [
+        let app = launchApp(args: [
             "--screenshots",
             "--skip-onboarding",
             "--mock-subscribed",
             "--seed-data", "marketplace-stripped"
-        ]
-        setupSnapshot(app)
-        app.launch()
+        ])
 
         let navBar = app.navigationBars["ExifArmor"]
         XCTAssertTrue(navBar.waitForExistence(timeout: 5))
@@ -137,16 +122,13 @@ class ScreenshotTests: XCTestCase {
 
     // MARK: - Test 6: Pro upgrade view (paywall)
     func test06_proUpgrade() throws {
-        let app = XCUIApplication()
-        app.launchArguments = [
+        let app = launchApp(args: [
             "--screenshots",
             "--skip-onboarding",
             "--mock-unsubscribed",
             "--mock-prices",
             "--seed-data", "marketplace"
-        ]
-        setupSnapshot(app)
-        app.launch()
+        ])
 
         let navBar = app.navigationBars["ExifArmor"]
         XCTAssertTrue(navBar.waitForExistence(timeout: 5))
@@ -161,5 +143,17 @@ class ScreenshotTests: XCTestCase {
         }
 
         snapshot("06-pro-upgrade")
+    }
+    @discardableResult
+    private func launchApp(args: [String]) -> XCUIApplication {
+        let app = XCUIApplication()
+        app.launchArguments = args
+        setupSnapshot(app)
+        app.launch()
+        XCTAssertTrue(
+            app.wait(for: .runningForeground, timeout: 30),
+            "App did not reach foreground within 30s — aborting to avoid silent 0-PNG run"
+        )
+        return app
     }
 }
